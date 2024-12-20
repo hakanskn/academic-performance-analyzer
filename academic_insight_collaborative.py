@@ -33,11 +33,6 @@ import os
 
 import locale
 
-# Varsayılan kodlamayı UTF-8 olarak ayarla
-# sys.stdout.reconfigure(encoding='utf-8')
-# sys.stderr.reconfigure(encoding='utf-8')
-# locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-
 
 class ImprovedAcademicAnalyzer:
     def __init__(self, pdf_path: str):
@@ -720,36 +715,6 @@ class ImprovedAcademicAnalyzer:
                             write_normal_text(paragraph)
 
                     self.ln(paragraph_spacing)
-
-                # def chapter_body(self, text):
-                #     self.set_font('Arial', '', 10)  # Daha küçük font boyutu
-                #     import textwrap
-                #     wrapped_text = "\n".join(textwrap.wrap(text, width=100))  # Uzun metni kır
-                #     try:
-                #         if self.get_y() > self.h - 20:  # Eğer sayfa bitiyorsa
-                #             self.add_page()
-                #         self.multi_cell(0, 10, wrapped_text)  # Sabit genişlikte metni ekle
-                #     except Exception as e:
-                #         print(f"Metni eklerken hata oluştu: {e}")
-
-                # def chapter_body(self, text):
-                #     from textwrap3 import wrap
-                #     # wrapped_text = "\n".join(wrap(text, width=100))  # Uzun metni kır
-                #     self.set_font('Arial', '', 11)
-                #     # Eğer metin birden fazla satırsa ve madde işareti içeriyorsa her satırı ayrı formatlayalım
-                #     wrapped_line = ''
-                #     if '\n' in text:
-                #         for line in text.split('\n'):
-                #             if line.strip():  # Boş satırları atla
-                #                 if '•' in line or '-' in line or '*' in line:
-                #                     line = self._format_bullet_point(line)
-                #
-                #                 wrapped_line = "\n".join(wrap(line, width=100))
-                #                 self.multi_cell(200, 10, self.safe_encode(wrapped_line))
-                #     else:
-                #         wrapped_text = "\n".join(wrap(text, width=100))
-                #         self.multi_cell(200, 10, self.safe_encode(wrapped_text))
-                #     self.ln()
 
                 @staticmethod
                 def safe_encode(text):
