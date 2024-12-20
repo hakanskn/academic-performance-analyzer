@@ -1,0 +1,4 @@
+{
+    "openai": "your-openai-api-key",
+    "anthropic": "your-anthropic-api-key"
+}
