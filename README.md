@@ -45,7 +45,7 @@
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/academic-performance-analyzer.git
+   git clone https://github.com/hakanskn/academic-performance-analyzer.git
    cd academic-performance-analyzer
    ```
 
@@ -55,11 +55,12 @@
    pip install -r requirements.txt
    ```
 
-3. Set up your API keys as environment variables:
-
-   ```bash
-   export OPENAI_API_KEY=your_openai_api_key
-   export ANTHROPIC_API_KEY=your_anthropic_api_key
+3. API anahtarlarınızı `config.json` dosyasına ekleyin:
+   ```json
+   {
+       "openai": "your-openai-api-key",
+       "anthropic": "your-anthropic-api-key"
+   }
    ```
 
 ---
@@ -67,7 +68,7 @@
 1. Depoyu klonlayın:
 
    ```bash
-   git clone https://github.com/yourusername/academic-performance-analyzer.git
+   git clone https://github.com/hakanskn/academic-performance-analyzer.git
    cd academic-performance-analyzer
    ```
 
