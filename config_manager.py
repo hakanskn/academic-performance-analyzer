@@ -1,25 +1,37 @@
 # config_manager.py
 import json
+import logging
 import os
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigManager:
     def __init__(self, config_file="config.json"):
         self.config_file = config_file
+        self._apply_file_permissions()
         self.config = self._load_config()
+
+    def _apply_file_permissions(self):
+        """Mevcut config dosyasına kısıtlayıcı izinler uygula"""
+        if os.name != 'nt' and os.path.exists(self.config_file):
+            os.chmod(self.config_file, 0o600)
 
     def _load_config(self):
         """Load configuration from JSON file"""
-        try:
-            if not os.path.exists(self.config_file):
-                self._create_default_config()
+        if not os.path.exists(self.config_file):
+            self._create_default_config()
 
+        try:
             with open(self.config_file, 'r', encoding='utf-8') as f:
                 return json.load(f)
-        except Exception as e:
-            print(f"Error loading config: {e}")
-            return {}
+        except json.JSONDecodeError as e:
+            logger.error(f"Config dosyası geçersiz JSON: {e}")
+            raise
+        except OSError as e:
+            logger.error(f"Config dosyası okunamadı: {e}")
+            raise
 
     def _create_default_config(self):
         """Create default configuration file"""
@@ -33,7 +45,6 @@ class ConfigManager:
         with open(self.config_file, 'w', encoding='utf-8') as f:
             json.dump(default_config, f, indent=4)
 
-        # Set restrictive permissions on the config file
         if os.name != 'nt':  # Unix-like systems
             os.chmod(self.config_file, 0o600)
 

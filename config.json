@@ -1,4 +1,6 @@
 {
-    "openai": "your-openai-api-key",
-    "anthropic": "your-anthropic-api-key"
+    "api_keys": {
+        "openai": "your-openai-api-key-here",
+        "anthropic": "your-anthropic-api-key-here"
+    }
 }

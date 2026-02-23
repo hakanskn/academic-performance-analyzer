@@ -1,37 +1,29 @@
 import argparse
+import locale
+import logging
+import os
 import sys
+from contextlib import contextmanager
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+from functools import lru_cache
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
-import openai
-import pdfplumber
+import aiohttp
+import asyncio
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import pdfplumber
 import seaborn as sns
 from anthropic import Anthropic
 from fpdf import FPDF
-import numpy as np
-from datetime import datetime
-import os
-
 from openai import OpenAI
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from config_manager import ConfigManager
 from cost_calculator import CostCalculator
-import os
-import logging
-from pathlib import Path
-from functools import lru_cache
-from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, List, Optional, Tuple
-import asyncio
-import aiohttp
-from tenacity import retry, stop_after_attempt, wait_exponential
-from contextlib import contextmanager
-
-
-# academic_insight_collaborative.py dosyasının en başına ekleyin
-import os
-
-import locale
 
 
 class ImprovedAcademicAnalyzer:
@@ -583,6 +575,7 @@ class ImprovedAcademicAnalyzer:
             "DİN KÜLTÜRÜ": "Din Kültürü",
             "YABANCI DİL": "İngilizce"
         }
+        return None
 
     # def _format_bullet_point(self, text):
     #     """Metni noktalı madde işareti formatına dönüştür"""
@@ -598,11 +591,32 @@ class ImprovedAcademicAnalyzer:
         try:
             from fpdf import FPDF
 
+            def _get_font_path(name):
+                """İşletim sistemine göre font yolunu döndür"""
+                candidates = {
+                    'arial': [
+                        r"C:\Windows\Fonts\arial.ttf",
+                        "/usr/share/fonts/truetype/msttcorefonts/Arial.ttf",
+                        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+                        "/System/Library/Fonts/Supplemental/Arial.ttf",
+                    ],
+                    'arialbd': [
+                        r"C:\Windows\Fonts\arialbd.ttf",
+                        "/usr/share/fonts/truetype/msttcorefonts/Arial_Bold.ttf",
+                        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+                        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+                    ],
+                }
+                for path in candidates.get(name, []):
+                    if os.path.exists(path):
+                        return path
+                raise FileNotFoundError(f"Font bulunamadı: {name}. Lütfen Arial veya Liberation Sans fontunu yükleyin.")
+
             class UTF8Report(FPDF):
                 def __init__(self):
                     super().__init__()
-                    self.add_font('Arial', '', r"C:\Windows\Fonts\arial.ttf", uni=True)
-                    self.add_font('Arial', 'B', r"C:\Windows\Fonts\arialbd.ttf", uni=True)
+                    self.add_font('Arial', '', _get_font_path('arial'), uni=True)
+                    self.add_font('Arial', 'B', _get_font_path('arialbd'), uni=True)
                     self.add_header_footer = True
 
                 def header(self):
@@ -873,8 +887,8 @@ class ImprovedAcademicAnalyzer:
             response = client.messages.create(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=1000,
+                system=system_prompt,
                 messages=[
-                    {"role": "assistant", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
                 ]
             )
@@ -916,10 +930,10 @@ class ImprovedAcademicAnalyzer:
                 for line in text.split('\n'):
                     if "Öğrenci Adı:" in line:
                         student_info['name'] = line.split('Öğrenci Adı:')[1].strip()
-                        print(f"İsim: {student_info['name']}")  # Bu print'i ekleyin
+                        self.logger.info("Öğrenci adı çıkarıldı")
                     elif "ÖZEL" in line:
                         student_info['school'] = line.strip()
-                        print(f"Okul: {student_info['school']}")  # Bu print'i ekleyin
+                        self.logger.info("Okul bilgisi çıkarıldı")
                     elif "Rapor Tarihi:" in line:
                         student_info['report_date'] = line.split('Rapor Tarihi:')[1].strip()
 
@@ -1079,9 +1093,17 @@ class ImprovedAcademicAnalyzer:
 #         sys.exit(1)
 
 async def main():
-    # PDF dosya yolu
-    pdf_path = "./data/KAZANIM_BASARI_DURUMU_12130949.pdf"
-    output_dir = Path.cwd() / "reports"
+    parser = argparse.ArgumentParser(description='Akademik Performans Analiz Sistemi')
+    parser.add_argument('--pdf', type=str, required=True, help='PDF dosyasının yolu')
+    parser.add_argument('--output', type=str, help='Çıktı raporu için klasör yolu')
+    parser.add_argument('--debug', action='store_true', help='Debug modu aktif')
+    args = parser.parse_args()
+
+    log_level = logging.DEBUG if args.debug else logging.INFO
+    logging.basicConfig(level=log_level)
+
+    pdf_path = args.pdf
+    output_dir = Path(args.output) if args.output else Path.cwd() / "reports"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     try:
