@@ -1,0 +1,21 @@
+# API anahtarları ve yapılandırma
+config.json
+
+# Log dosyaları
+*.log
+analysis.log
+
+# Geçici dosyalar
+temp/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+
+# Rapor çıktıları
+reports/
+
+# Python sanal ortamı
+venv/
+.env
+.venv
